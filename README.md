@@ -168,7 +168,7 @@ Models trained on PASCAL VOC can be downloaded [here](https://drive.google.com/d
 
   ```Shell
   CUDA_VISIBLE_DEVICES=0 python tools/train_net_step.py --dataset voc2007 \
-    --cfg configs/baselines/vgg16_voc2007.yaml --bs 1 --nw 4 --iter_size 2
+    --cfg configs/baselines/vgg16_voc2007.yaml --bs 1 --nw 4 --iter_size 4
   ```
 **Note: The current implementation has a bug on multi-gpu training and thus does not support multi-gpu training.**
 
