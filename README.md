@@ -207,4 +207,6 @@ For CorLoc, run the python code tools/reval_discovery.py
 
 ### What we are going to do
 
+- [ ] Add PASCAL VOC 2012 configurations.
+- [ ] Upload trained models.
 - [ ] Support multi-gpu training.
