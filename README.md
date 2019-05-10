@@ -6,7 +6,7 @@ By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info
 
 **We embed the [trick](http://pengtang.xyz/publications/0640-supp.pdf) proposed in our [ECCV paper](http://pengtang.xyz/publications/0640.pdf) for better performance.**
 
-**The final performance of this implementation is mAP xx% and CorLoc xx% on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
+**The final performance of this implementation is mAP 49.2% and CorLoc 65.0% on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
 
 ### Introduction
 
