@@ -83,7 +83,7 @@ If you find PCL useful in your research, please consider citing:
 Tested under python3.
 
 - python packages
-  - pytorch 0.4.1
+  - pytorch==0.4.1
   - torchvision>=0.2.0
   - cython
   - matplotlib
