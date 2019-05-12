@@ -83,16 +83,16 @@ If you find PCL useful in your research, please consider citing:
 Tested under python3.
 
 - python packages
-  - pytorch 0.3.1~0.4.1
+  - pytorch 0.4.1
   - torchvision>=0.2.0
   - cython
   - matplotlib
   - numpy
   - scipy
   - opencv
-  - pyyaml
+  - pyyaml==3.12
   - packaging
-  - [pycocotools](https://github.com/cocodataset/cocoapi)  — for COCO dataset, also available from pip.
+  - [pycocotools](https://github.com/cocodataset/cocoapi)  — also available from pip.
   - tensorboardX  — for logging the losses in Tensorboard
   - sklearn
 - An NVIDAI GPU and CUDA 8.0 or higher. Some operations only have gpu implementation.
