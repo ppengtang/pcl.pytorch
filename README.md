@@ -160,7 +160,7 @@ Tested under python3.
 
 ### Download models trained on PASCAL VOC
 
-Models trained on PASCAL VOC can be downloaded [here](https://drive.google.com/drive/folders/1OG56zqBv_gbLsDXySpLi55bYy5Q9Tf2-?usp=sharing).
+Models trained on PASCAL VOC can be downloaded here: [Google Drive](https://drive.google.com/drive/folders/1OG56zqBv_gbLsDXySpLi55bYy5Q9Tf2-?usp=sharing), [Baidu Yun](https://pan.baidu.com/s/1k5SvtFAXmz0dJ9-QLeaq8Q) (Password: 3l06).
 
 ### Usage
 
@@ -207,6 +207,6 @@ For CorLoc, run the python code tools/reval_discovery.py
 
 ### What we are going to do
 
-- [ ] Add PASCAL VOC 2012 configurations.
-- [ ] Upload trained models.
+- [x] Add PASCAL VOC 2012 configurations.
+- [x] Upload trained models.
 - [ ] Support multi-gpu training.
