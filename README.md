@@ -2,7 +2,7 @@
 
 By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info/), [Song Bai](http://songbai.site/), [Wei Shen](http://songbai.site/), [Xiang Bai](http://122.205.5.5:8071/~xbai/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu), and [Alan Yuille](http://www.cs.jhu.edu/~ayuille/).
 
-**This is a PyTorch implementation of our PCL. The original Caffe implementation of PCL is available [here](https://raw.githubusercontent.com/ppengtang/oicr/pcl).**
+**This is a PyTorch implementation of our PCL. The original Caffe implementation of PCL is available [here](https://github.com/ppengtang/oicr/tree/pcl).**
 
 **We embed the [trick](http://pengtang.xyz/publications/0640-supp.pdf) proposed in our [ECCV paper](http://pengtang.xyz/publications/0640.pdf) for better performance.**
 
