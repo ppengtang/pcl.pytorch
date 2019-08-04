@@ -195,13 +195,13 @@ Test output is written underneath `$PCL_ROOT/Outputs`.
 #### Evaluation
 For mAP, run the python code tools/reval.py
   ```Shell
-  ./tools/reeval.py $output_dir/detections.pkl \
+  ./tools/reeval.py --result_path $output_dir/detections.pkl \
     --dataset voc2007test --cfg configs/baselines/vgg16_voc2007.yaml
   ```
 
 For CorLoc, run the python code tools/reval_discovery.py
   ```Shell
-  ./tools/reeval.py $output_dir/discovery.pkl \
+  ./tools/reeval.py --result_path $output_dir/discovery.pkl \
     --dataset voc2007trainval --cfg configs/baselines/vgg16_voc2007.yaml
   ```
 
