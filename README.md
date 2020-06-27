@@ -8,6 +8,8 @@ By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info
 
 **The final performance of this implementation is mAP 49.2% and CorLoc 65.0% on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
 
+Small trick to obtain better results on COCO: changing [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/lib/modeling/pcl_heads.py#L84) to `https://github.com/ppengtang/pcl.pytorch/blob/master/lib/modeling/pcl_heads.py#L84`.
+
 ### Introduction
 
 **Proposal Cluster Learning (PCL)** is a framework for weakly supervised object detection with deep ConvNets.
