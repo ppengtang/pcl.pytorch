@@ -434,7 +434,7 @@ __C.BBOX_XFORM_CLIP = np.log(1000. / 8.)
 __C.PIXEL_MEANS = np.array([[[102.9801, 115.9465, 122.7717]]])
 
 # For reproducibility
-__C.RNG_SEED = 3
+__C.RNG_SEED = 4
 
 # A small number that's used many times
 __C.EPS = 1e-14
