@@ -6,13 +6,15 @@ By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info
 
 **The final performance of this implementation is ~~mAP 49.2% and CorLoc 65.0%~~ mAP 52.9% and CorLoc 67.2% using [vgg16_voc2007.yaml](configs/baselines/vgg16_voc2007.yaml) and mAP 54.1% and CorLoc 69.5% using [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml) on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
 
+Please check the [0.4.0](https://github.com/ppengtang/pcl.pytorch/tree/0.4.0) branch for the older version of codes.
+
 Small trick to obtain better results on COCO: changing [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/lib/modeling/pcl_heads.py#L84) to `return 4.0 * loss.mean()`.
 
 ### Updates
 - Use the [trick](http://pengtang.xyz/publications/0640-supp.pdf) proposed in our [ECCV paper](http://pengtang.xyz/publications/0640.pdf).
 - Use OICR and train more iterations.
 - Add bounding box regression / Fast R-CNN branch following [paper1](https://openaccess.thecvf.com/content_ECCV_2018/papers/Mingfei_Gao_C-WSL_Count-guided_Weakly_ECCV_2018_paper.pdf) and [paper2](https://arxiv.org/pdf/1911.12148.pdf).
-- Support PyTorch 1.6.0 by changing codes of losses to pure PyTorch codes and using RoI-Pooling from [mmcv](https://github.com/open-mmlab/mmcv). Please check the [0.4.0](https://github.com/ppengtang/pcl.pytorch/tree/0.4.0) branch for the older version of codes.
+- Support PyTorch 1.6.0 by changing codes of losses to pure PyTorch codes and using RoI-Pooling from [mmcv](https://github.com/open-mmlab/mmcv).
 - Make the loss of first refinement branch 3x bigger following [paper3](https://arxiv.org/pdf/2004.04725.pdf), please check [here](https://github.com/NVlabs/wetectron/issues/3#issuecomment-674909989).
 - For [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml), use one more image scale 1000 and train more iterations following [paper3](https://arxiv.org/pdf/2004.04725.pdf).
 
