@@ -2,9 +2,10 @@ from __future__ import absolute_import
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 import utils.boxes as box_utils
+import utils.blob as blob_utils
+import utils.net as net_utils
 from core.config import cfg
 
 import numpy as np
@@ -31,18 +32,66 @@ def PCL(boxes, cls_prob, im_labels, cls_prob_new):
     proposals = _get_graph_centers(boxes.copy(), cls_prob.copy(),
         im_labels.copy())
 
-    labels, cls_loss_weights, gt_assignment, pc_labels, pc_probs, \
-        pc_count, img_cls_loss_weights = _get_proposal_clusters(boxes.copy(),
-            proposals, im_labels.copy(), cls_prob_new.copy())
+    labels, cls_loss_weights, gt_assignment, bbox_targets, bbox_inside_weights, bbox_outside_weights \
+        = get_proposal_clusters(boxes.copy(), proposals, im_labels.copy())
 
-    return {'labels' : labels.reshape(1, -1).astype(np.float32).copy(),
+    return {'labels' : labels.reshape(1, -1).astype(np.int64).copy(),
             'cls_loss_weights' : cls_loss_weights.reshape(1, -1).astype(np.float32).copy(),
             'gt_assignment' : gt_assignment.reshape(1, -1).astype(np.float32).copy(),
-            'pc_labels' : pc_labels.reshape(1, -1).astype(np.float32).copy(),
-            'pc_probs' : pc_probs.reshape(1, -1).astype(np.float32).copy(),
-            'pc_count' : pc_count.reshape(1, -1).astype(np.float32).copy(),
-            'img_cls_loss_weights' : img_cls_loss_weights.reshape(1, -1).astype(np.float32).copy(),
-            'im_labels_real' : np.hstack((np.array([[1]]), im_labels)).astype(np.float32).copy()}
+            'bbox_targets' : bbox_targets.astype(np.float32).copy(),
+            'bbox_inside_weights' : bbox_inside_weights.astype(np.float32).copy(),
+            'bbox_outside_weights' : bbox_outside_weights.astype(np.float32).copy()}
+
+
+def OICR(boxes, cls_prob, im_labels, cls_prob_new):
+
+    cls_prob = cls_prob.data.cpu().numpy()
+    cls_prob_new = cls_prob_new.data.cpu().numpy()
+    if cls_prob.shape[1] != im_labels.shape[1]:
+        cls_prob = cls_prob[:, 1:]
+    eps = 1e-9
+    cls_prob[cls_prob < eps] = eps
+    cls_prob[cls_prob > 1 - eps] = 1 - eps
+
+    proposals = _get_highest_score_proposals(boxes, cls_prob, im_labels)
+
+    labels, cls_loss_weights, gt_assignment, bbox_targets, bbox_inside_weights, bbox_outside_weights \
+        = get_proposal_clusters(boxes.copy(), proposals, im_labels.copy())
+
+    return {'labels' : labels.reshape(1, -1).astype(np.int64).copy(),
+            'cls_loss_weights' : cls_loss_weights.reshape(1, -1).astype(np.float32).copy(),
+            'gt_assignment' : gt_assignment.reshape(1, -1).astype(np.float32).copy(),
+            'bbox_targets' : bbox_targets.astype(np.float32).copy(),
+            'bbox_inside_weights' : bbox_inside_weights.astype(np.float32).copy(),
+            'bbox_outside_weights' : bbox_outside_weights.astype(np.float32).copy()}
+
+
+def _get_highest_score_proposals(boxes, cls_prob, im_labels):
+    """Get proposals with highest score."""
+
+    num_images, num_classes = im_labels.shape
+    assert num_images == 1, 'batch size shoud be equal to 1'
+    im_labels_tmp = im_labels[0, :]
+    gt_boxes = np.zeros((0, 4), dtype=np.float32)
+    gt_classes = np.zeros((0, 1), dtype=np.int32)
+    gt_scores = np.zeros((0, 1), dtype=np.float32)
+    for i in xrange(num_classes):
+        if im_labels_tmp[i] == 1:
+            cls_prob_tmp = cls_prob[:, i].copy()
+            max_index = np.argmax(cls_prob_tmp)
+
+            gt_boxes = np.vstack((gt_boxes, boxes[max_index, :].reshape(1, -1)))
+            gt_classes = np.vstack((gt_classes, (i + 1) * np.ones((1, 1), dtype=np.int32)))
+            gt_scores = np.vstack((gt_scores,
+                                   cls_prob_tmp[max_index] * np.ones((1, 1), dtype=np.float32)))
+            cls_prob[max_index, :] = 0
+
+    proposals = {'gt_boxes' : gt_boxes,
+                 'gt_classes': gt_classes,
+                 'gt_scores': gt_scores}
+
+    return proposals
+
 
 def _get_top_ranking_propoals(probs):
     """Get top ranking proposals by k-means"""
@@ -57,6 +106,7 @@ def _get_top_ranking_propoals(probs):
 
     return index
 
+
 def _build_graph(boxes, iou_threshold):
     """Build graph based on box IoU"""
     overlaps = box_utils.bbox_overlaps(
@@ -64,6 +114,7 @@ def _build_graph(boxes, iou_threshold):
         boxes.astype(dtype=np.float32, copy=False))
 
     return (overlaps > iou_threshold).astype(np.float32)
+
 
 def _get_graph_centers(boxes, cls_prob, im_labels):
     """Get graph centers."""
@@ -125,7 +176,46 @@ def _get_graph_centers(boxes, cls_prob, im_labels):
 
     return proposals
 
-def _get_proposal_clusters(all_rois, proposals, im_labels, cls_prob):
+
+def _compute_targets(ex_rois, gt_rois, labels):
+    """Compute bounding-box regression targets for an image."""
+
+    assert ex_rois.shape[0] == gt_rois.shape[0]
+    assert ex_rois.shape[1] == 4
+    assert gt_rois.shape[1] == 4
+
+    targets = box_utils.bbox_transform_inv(ex_rois, gt_rois,
+                                           cfg.MODEL.BBOX_REG_WEIGHTS)
+    return np.hstack((labels[:, np.newaxis], targets)).astype(
+        np.float32, copy=False)
+
+
+def _expand_bbox_targets(bbox_target_data):
+    """Bounding-box regression targets are stored in a compact form in the
+    roidb.
+    This function expands those targets into the 4-of-4*K representation used
+    by the network (i.e. only one class has non-zero targets). The loss weights
+    are similarly expanded.
+    Returns:
+        bbox_target_data (ndarray): N x 4K blob of regression targets
+        bbox_inside_weights (ndarray): N x 4K blob of loss weights
+    """
+    num_bbox_reg_classes = cfg.MODEL.NUM_CLASSES + 1
+
+    clss = bbox_target_data[:, 0]
+    bbox_targets = blob_utils.zeros((clss.size, 4 * num_bbox_reg_classes))
+    bbox_inside_weights = blob_utils.zeros(bbox_targets.shape)
+    inds = np.where(clss > 0)[0]
+    for ind in inds:
+        cls = int(clss[ind])
+        start = 4 * cls
+        end = start + 4
+        bbox_targets[ind, start:end] = bbox_target_data[ind, 1:]
+        bbox_inside_weights[ind, start:end] = (1.0, 1.0, 1.0, 1.0)
+    return bbox_targets, bbox_inside_weights
+
+
+def get_proposal_clusters(all_rois, proposals, im_labels):
     """Generate a random sample of RoIs comprising foreground and background
     examples.
     """
@@ -153,81 +243,53 @@ def _get_proposal_clusters(all_rois, proposals, im_labels, cls_prob):
     cls_loss_weights[ig_inds] = 0.0
 
     labels[bg_inds] = 0
+
+    if cfg.MODEL.WITH_FRCNN:
+        bbox_targets = _compute_targets(all_rois, gt_boxes[gt_assignment, :],
+            labels)
+        bbox_targets, bbox_inside_weights = _expand_bbox_targets(bbox_targets)
+        bbox_outside_weights = np.array(
+            bbox_inside_weights > 0, dtype=bbox_inside_weights.dtype) \
+            * cls_loss_weights.reshape(-1, 1)
+    else:
+        bbox_targets, bbox_inside_weights, bbox_outside_weights = np.array([0]), np.array([0]), np.array([0])
+
     gt_assignment[bg_inds] = -1
 
-    img_cls_loss_weights = np.zeros(gt_boxes.shape[0], dtype=np.float32)
-    pc_probs = np.zeros(gt_boxes.shape[0], dtype=np.float32)
-    pc_labels = np.zeros(gt_boxes.shape[0], dtype=np.int32)
-    pc_count = np.zeros(gt_boxes.shape[0], dtype=np.int32)
-
-    for i in xrange(gt_boxes.shape[0]):
-        po_index = np.where(gt_assignment == i)[0]
-        img_cls_loss_weights[i] = np.sum(cls_loss_weights[po_index])
-        pc_labels[i] = gt_labels[i, 0]
-        pc_count[i] = len(po_index)
-        pc_probs[i] = np.average(cls_prob[po_index, pc_labels[i]])
-
-    return labels, cls_loss_weights, gt_assignment, pc_labels, pc_probs, pc_count, img_cls_loss_weights
+    return labels, cls_loss_weights, gt_assignment, bbox_targets, bbox_inside_weights, bbox_outside_weights
 
 
-class PCLLosses(torch.autograd.Function):
+class PCLLosses(nn.Module):
 
-    def forward(ctx, pcl_probs, labels, cls_loss_weights,
-                gt_assignment, pc_labels, pc_probs, pc_count,
-                img_cls_loss_weights, im_labels):
-        ctx.pcl_probs, ctx.labels, ctx.cls_loss_weights, \
-        ctx.gt_assignment, ctx.pc_labels, ctx.pc_probs, \
-        ctx.pc_count, ctx.img_cls_loss_weights, ctx.im_labels = \
-        pcl_probs, labels, cls_loss_weights, gt_assignment, \
-        pc_labels, pc_probs, pc_count, img_cls_loss_weights, im_labels
+    def forward(ctx, pcl_probs, labels, cls_loss_weights, gt_assignments):
+        cls_loss = 0.0
+        weight = cls_loss_weights.view(-1).float()
+        labels = labels.view(-1)
+        gt_assignments = gt_assignments.view(-1)
 
-        batch_size, channels = pcl_probs.size()
-        loss = 0
-        ctx.mark_non_differentiable(labels, cls_loss_weights,
-                                    gt_assignment, pc_labels, pc_probs,
-                                    pc_count, img_cls_loss_weights, im_labels)
+        for gt_assignment in gt_assignments.unique():
+            inds = torch.nonzero(gt_assignment == gt_assignments,
+                as_tuple=False).view(-1)
+            if gt_assignment == -1:
+                assert labels[inds].sum() == 0
+                cls_loss -= (torch.log(pcl_probs[inds, 0].clamp(1e-9, 10000))
+                         * weight[inds]).sum()
+            else:
+                assert labels[inds].unique().size(0) == 1
+                label_cur = labels[inds[0]]
+                cls_loss -= torch.log(
+                    pcl_probs[inds, label_cur].clamp(1e-9,  10000).mean()
+                    ) * weight[inds].sum()
 
-        for c in range(channels):
-            if im_labels[0, c] != 0:
-                if c == 0:
-                    for i in range(batch_size):
-                        if labels[0, i] == 0:
-                            loss -= cls_loss_weights[0, i] * torch.log(pcl_probs[i, c])
-                else:
-                    for i in range(pc_labels.size(0)):
-                        if pc_probs[0, i] == c:
-                            loss -= img_cls_loss_weights[0, i] * torch.log(pc_probs[0, i])
+        return cls_loss / max(float(pcl_probs.size(0)), 1.)
 
-        return loss / batch_size
 
-    def backward(ctx, grad_output):
-        pcl_probs, labels, cls_loss_weights, gt_assignment, pc_labels, pc_probs, \
-        pc_count, img_cls_loss_weights, im_labels = \
-        ctx.pcl_probs, ctx.labels, ctx.cls_loss_weights, \
-        ctx.gt_assignment, ctx.pc_labels, ctx.pc_probs, \
-        ctx.pc_count, ctx.img_cls_loss_weights, ctx.im_labels
+class OICRLosses(nn.Module):
+    def __init__(self):
+        super(OICRLosses, self).__init__()
 
-        grad_input = grad_output.new(pcl_probs.size()).zero_()
-
-        batch_size, channels = pcl_probs.size()
-
-        for i in range(batch_size):
-            for c in range(channels):
-                grad_input[i, c] = 0
-                if im_labels[0, c] != 0:
-                    if c == 0:
-                        if labels[0, i] == 0:
-                            grad_input[i, c] = -cls_loss_weights[0, i] / pcl_probs[i, c]
-                    else:
-                        if labels[0, i] == c:
-                            pc_index = int(gt_assignment[0, i].item())
-                            if c != pc_labels[0, pc_index]:
-                                print('labels mismatch.')
-                            grad_input[i, c] = -img_cls_loss_weights[0, pc_index] / (pc_count[0, pc_index] * pc_probs[0, pc_index])
-
-        grad_input /= batch_size
-
-        return grad_input, grad_output.new(labels.size()).zero_(), grad_output.new(cls_loss_weights.size()).zero_(), \
-               grad_output.new(gt_assignment.size()).zero_(), grad_output.new(pc_labels.size()).zero_(), \
-               grad_output.new(pc_probs.size()).zero_(), grad_output.new(pc_count.size()).zero_(), \
-               grad_output.new(img_cls_loss_weights.size()).zero_(), grad_output.new(im_labels.size()).zero_()
+    def forward(self, prob, labels, cls_loss_weights, gt_assignments, eps = 1e-6):
+        loss = torch.log(prob + eps)[range(prob.size(0)), labels]
+        loss *= -cls_loss_weights
+        ret = loss.mean()
+        return ret

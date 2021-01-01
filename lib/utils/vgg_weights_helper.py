@@ -14,7 +14,6 @@ from core.config import cfg
 def load_pretrained_imagenet_weights(model):
     """Load pretrained weights
     Args:
-        num_layers: 50 for res50 and so on.
         model: the generalized rcnnn module
     """
     _, ext = os.path.splitext(cfg.VGG.IMAGENET_PRETRAINED_WEIGHTS)

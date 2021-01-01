@@ -49,10 +49,11 @@ import warnings
 import numpy as np
 
 from core.config import cfg
+from ops import nms as mmcv_nms
+from ops import soft_nms as mmcv_soft_nms
 import utils.cython_bbox as cython_bbox
-import utils.cython_nms as cython_nms
 
-bbox_overlaps = cython_bbox.bbox_overlaps
+bbox_overlaps = cython_bbox.bbox_overlaps	
 
 
 def boxes_area(boxes):
@@ -320,8 +321,12 @@ def box_voting(top_dets, all_dets, thresh, scoring_method='ID', beta=1.0):
 def nms(dets, thresh):
     """Apply classic DPM-style greedy NMS."""
     if dets.shape[0] == 0:
-        return []
-    return cython_nms.nms(dets, thresh)
+        return dets, []
+    dets, keep = mmcv_nms(
+        np.ascontiguousarray(dets[:, :4], dtype=np.float32),
+        np.ascontiguousarray(dets[:, -1], dtype=np.float32),
+        thresh)
+    return dets, keep
 
 
 def soft_nms(
@@ -331,14 +336,12 @@ def soft_nms(
     if dets.shape[0] == 0:
         return dets, []
 
-    methods = {'hard': 0, 'linear': 1, 'gaussian': 2}
-    assert method in methods, 'Unknown soft_nms method: {}'.format(method)
-
-    dets, keep = cython_nms.soft_nms(
-        np.ascontiguousarray(dets, dtype=np.float32),
-        np.float32(sigma),
+    dets, keep = mmcv_soft_nms(
+        np.ascontiguousarray(dets[:, :4], dtype=np.float32),
+        np.ascontiguousarray(dets[:, -1], dtype=np.float32),
         np.float32(overlap_thresh),
+        np.float32(sigma),
         np.float32(score_thresh),
-        np.uint8(methods[method])
+        method
     )
     return dets, keep

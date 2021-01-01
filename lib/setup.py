@@ -29,16 +29,9 @@ ext_modules = [
         extra_compile_args=['-Wno-cpp'],
         include_dirs=[numpy_include]
     ),
-    Extension(
-        name='utils.cython_nms',
-        sources=['utils/cython_nms.pyx'],
-        extra_compile_args=['-Wno-cpp'],
-        include_dirs=[numpy_include]
-    )
 ]
 
 setup(
-    name='mask_rcnn',
+    name='pcl',
     ext_modules=cythonize(ext_modules)
 )
-

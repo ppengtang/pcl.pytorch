@@ -112,7 +112,18 @@ def im_detect_bbox(model, im, target_scale, target_max_size, boxes=None):
     scores /= cfg.REFINE_TIMES
     # In case there is 1 proposal
     scores = scores.reshape([-1, scores.shape[-1]])
-    pred_boxes = boxes
+
+    if cfg.MODEL.WITH_FRCNN:
+        scores += return_dict['cls_score'].data.cpu().numpy().squeeze().reshape([-1, scores.shape[-1]])
+        # scores = scores.reshape([-1, scores.shape[-1]])
+        scores /= 2.
+
+        box_deltas = return_dict['bbox_pred'].data.cpu().numpy().squeeze()
+
+        pred_boxes = box_utils.bbox_transform(boxes, box_deltas, cfg.MODEL.BBOX_REG_WEIGHTS)
+        pred_boxes = box_utils.clip_tiled_boxes(pred_boxes, im.shape)
+    else:
+        pred_boxes = np.tile(boxes, (1, scores.shape[1]))
 
     if cfg.DEDUP_BOXES > 0:
         # Map scores and predictions back to the original set of boxes
@@ -305,7 +316,7 @@ def box_results_for_corloc(scores, boxes):  # NOTE: support single-batch
     # Skip j = 0, because it's the background class
     for j in range(1, num_classes):
         max_ind = np.argmax(scores[:, j])
-        cls_boxes[j] = np.hstack((boxes[max_ind, :].reshape(1, -1),
+        cls_boxes[j] = np.hstack((boxes[max_ind, j * 4:(j + 1) * 4].reshape(1, -1),
                                np.array([[scores[max_ind, j]]])))
 
     im_results = np.vstack([cls_boxes[j] for j in range(1, num_classes)])
@@ -335,7 +346,7 @@ def box_results_with_nms_and_limit(scores, boxes):  # NOTE: support single-batch
     for j in range(1, num_classes):
         inds = np.where(scores[:, j] > cfg.TEST.SCORE_THRESH)[0]
         scores_j = scores[inds, j]
-        boxes_j = boxes[inds, :]
+        boxes_j = boxes[inds, j * 4:(j + 1) * 4]
         dets_j = np.hstack((boxes_j, scores_j[:, np.newaxis])).astype(np.float32, copy=False)
         if cfg.TEST.SOFT_NMS.ENABLED:
             nms_dets, _ = box_utils.soft_nms(
@@ -346,8 +357,7 @@ def box_results_with_nms_and_limit(scores, boxes):  # NOTE: support single-batch
                 method=cfg.TEST.SOFT_NMS.METHOD
             )
         else:
-            keep = box_utils.nms(dets_j, cfg.TEST.NMS)
-            nms_dets = dets_j[keep, :]
+            nms_dets, _ = box_utils.nms(dets_j, cfg.TEST.NMS)
         # Refine the post-NMS boxes using bounding-box voting
         if cfg.TEST.BBOX_VOTE.ENABLED:
             nms_dets = box_utils.box_voting(

@@ -11,19 +11,19 @@ SOLVER:
   BASE_LR: 0.001
   GAMMA: 0.1
   # 1x schedule (note TRAIN.IMS_PER_BATCH: 1)
-  MAX_ITER: 70000
-  STEPS: [0, 50000]
+  MAX_ITER: 75000
+  STEPS: [0, 55000]
 FAST_RCNN:
   ROI_BOX_HEAD: vgg16.roi_2mlp_head
   ROI_XFORM_METHOD: RoIPoolF
   ROI_XFORM_RESOLUTION: 7
   MLP_HEAD_DIM: 4096
 TRAIN:
-  SCALES: (480, 576, 688, 864, 1200)
+  SCALES: (480, 576, 688, 864, 1000, 1200)
   MAX_SIZE: 2000
   IMS_PER_BATCH: 1
   BATCH_SIZE_PER_IM: 4096
-  PROPOSAL_FILES: ('data/selective_search_data/voc_2012_trainval.pkl',)
+  PROPOSAL_FILES: ('data/selective_search_data/voc_2007_trainval.pkl',)
 TEST:
   SCALE: 480
   MAX_SIZE: 2000
@@ -32,8 +32,8 @@ TEST:
   BBOX_AUG:
     ENABLED: True
     H_FLIP: True
-    SCALES: (576, 688, 864, 1200)
+    SCALES: (576, 688, 864, 1000, 1200)
     SCALE_H_FLIP: True
     SCORE_HEUR: 'AVG'
     COORD_HEUR: 'AVG'
-RNG_SEED: 3
+RNG_SEED: 4

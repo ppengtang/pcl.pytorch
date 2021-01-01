@@ -8,6 +8,7 @@ import resource
 import traceback
 import logging
 from collections import defaultdict
+import random
 
 import numpy as np
 import yaml
@@ -233,11 +234,15 @@ def main():
     # Effective training sample size for one epoch
     train_size = roidb_size // args.batch_size * args.batch_size
 
+    random.seed(cfg.RNG_SEED)
     np.random.seed(cfg.RNG_SEED)
     torch.manual_seed(cfg.RNG_SEED)
+    os.environ['PYTHONHASHSEED'] = str(cfg.RNG_SEED)
     if cfg.CUDA:
+        torch.cuda.manual_seed(cfg.RNG_SEED)
         torch.cuda.manual_seed_all(cfg.RNG_SEED)
-    torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
     batchSampler = BatchSampler(
         sampler=MinibatchSampler(ratio_list, ratio_index),

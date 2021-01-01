@@ -12,6 +12,26 @@ import nn as mynn
 logger = logging.getLogger(__name__)
 
 
+def smooth_l1_loss(bbox_pred, bbox_targets, bbox_inside_weights, bbox_outside_weights, cls_loss_weights, beta=1.0):
+    """
+    SmoothL1(x) = 0.5 * x^2 / beta      if |x| < beta
+                  |x| - 0.5 * beta      otherwise.
+    1 / N * sum_i alpha_out[i] * SmoothL1(alpha_in[i] * (y_hat[i] - y[i])).
+    N is the number of batch elements in the input predictions
+    """
+    box_diff = bbox_pred - bbox_targets
+    in_box_diff = bbox_inside_weights * box_diff
+    abs_in_box_diff = torch.abs(in_box_diff)
+    smoothL1_sign = (abs_in_box_diff < beta).detach().float()
+    in_loss_box = smoothL1_sign * 0.5 * torch.pow(in_box_diff, 2) / beta + \
+                  (1 - smoothL1_sign) * (abs_in_box_diff - (0.5 * beta))
+    out_loss_box = bbox_outside_weights * in_loss_box
+    loss_box = out_loss_box
+    N = (cls_loss_weights > 0).sum()
+    loss_box = loss_box.view(-1).sum(0) / N
+    return loss_box
+
+
 def clip_gradient(model, clip_norm):
     """Computes a gradient clipping coefficient based on gradient norm."""
     totalnorm = 0
@@ -20,7 +40,7 @@ def clip_gradient(model, clip_norm):
             modulenorm = p.grad.data.norm()
             totalnorm += modulenorm ** 2
     totalnorm = torch.sqrt(totalnorm).item()
-    
+
     norm = (clip_norm / max(totalnorm, clip_norm))
     for p in model.parameters():
         if p.requires_grad and (p.grad is not None):
@@ -76,7 +96,8 @@ def _CorrectMomentum(optimizer, param_keys, correction):
     """
     logger.info('Scaling update history by %.6f (new lr / old lr)', correction)
     for p_key in param_keys:
-        optimizer.state[p_key]['momentum_buffer'] *= correction
+        if 'momentum_buffer' in optimizer.state[p_key]:
+            optimizer.state[p_key]['momentum_buffer'] *= correction
 
 
 def _get_lr_change_ratio(cur_lr, new_lr):

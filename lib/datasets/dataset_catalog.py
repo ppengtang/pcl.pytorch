@@ -108,7 +108,7 @@ DATASETS = {
         ANN_FN:
             _DATA_DIR + '/VOC2007/annotations/voc_2007_trainval.json',
         DEVKIT_DIR:
-            _DATA_DIR + '/VOC2007/VOCdevkit'
+            _DATA_DIR
     },
     'voc_2007_test': {
         IM_DIR:
@@ -116,7 +116,7 @@ DATASETS = {
         ANN_FN:
             _DATA_DIR + '/VOC2007/annotations/voc_2007_test.json',
         DEVKIT_DIR:
-            _DATA_DIR + '/VOC2007/VOCdevkit'
+            _DATA_DIR
     },
     'voc_2012_trainval': {
         IM_DIR:
@@ -124,6 +124,6 @@ DATASETS = {
         ANN_FN:
             _DATA_DIR + '/VOC2012/annotations/voc_2012_trainval.json',
         DEVKIT_DIR:
-            _DATA_DIR + '/VOC2012/VOCdevkit'
+            _DATA_DIR
     }
 }

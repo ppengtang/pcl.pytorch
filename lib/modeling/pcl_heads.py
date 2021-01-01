@@ -35,7 +35,7 @@ class mil_outputs(nn.Module):
 
     def forward(self, x):
         if x.dim() == 4:
-            x = x.squeeze(3).squeeze(2)
+            x = x.view(x.size(0), -1)
         mil_score0 = self.mil_score0(x)
         mil_score1 = self.mil_score1(x)
         mil_score = F.softmax(mil_score0, dim=0) * F.softmax(mil_score1, dim=1)
@@ -70,7 +70,7 @@ class refine_outputs(nn.Module):
 
     def forward(self, x):
         if x.dim() == 4:
-            x = x.squeeze(3).squeeze(2)
+            x = x.view(x.size(0), -1)
         refine_score = [F.softmax(refine(x), dim=1) for refine in self.refine_score]
 
         return refine_score

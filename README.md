@@ -2,13 +2,19 @@
 
 By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info/), [Song Bai](http://songbai.site/), [Wei Shen](http://songbai.site/), [Xiang Bai](http://122.205.5.5:8071/~xbai/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu), and [Alan Yuille](http://www.cs.jhu.edu/~ayuille/).
 
-**This is a PyTorch implementation of our PCL. The original Caffe implementation of PCL is available [here](https://github.com/ppengtang/oicr/tree/pcl).**
+**This is a PyTorch implementation of our PCL/OICR. The original Caffe implementation of PCL/OICR is available [here](https://github.com/ppengtang/oicr).**
 
-**We embed the [trick](http://pengtang.xyz/publications/0640-supp.pdf) proposed in our [ECCV paper](http://pengtang.xyz/publications/0640.pdf) for better performance.**
-
-**The final performance of this implementation is mAP 49.2% and CorLoc 65.0% on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
+**The final performance of this implementation is ~~mAP 49.2% and CorLoc 65.0%~~ mAP 52.9% and CorLoc 67.2% using [vgg16_voc2007.yaml](configs/baselines/vgg16_voc2007.yaml) and mAP 54.1% and CorLoc 69.5% using [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml) on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
 
 Small trick to obtain better results on COCO: changing [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/lib/modeling/pcl_heads.py#L84) to `return 4.0 * loss.mean()`.
+
+### Updates
+- Use the [trick](http://pengtang.xyz/publications/0640-supp.pdf) proposed in our [ECCV paper](http://pengtang.xyz/publications/0640.pdf).
+- Use OICR and train more iterations.
+- Add bounding box regression / Fast R-CNN branch following [paper1](https://openaccess.thecvf.com/content_ECCV_2018/papers/Mingfei_Gao_C-WSL_Count-guided_Weakly_ECCV_2018_paper.pdf) and [paper2](https://arxiv.org/pdf/1911.12148.pdf).
+- Support PyTorch 1.6.0 by changing codes of losses to pure PyTorch codes and using RoI-Pooling from [mmcv](https://github.com/open-mmlab/mmcv). Please check the [0.4.0](https://github.com/ppengtang/pcl.pytorch/tree/0.4.0) branch for the older version of codes.
+- Make the loss of first refinement branch 3x bigger following [paper3](https://arxiv.org/pdf/2004.04725.pdf), please check [here](https://github.com/NVlabs/wetectron/issues/3#issuecomment-674909989).
+- For [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml), use one more image scale 1000 and train more iterations following [paper3](https://arxiv.org/pdf/2004.04725.pdf).
 
 ### Introduction
 
@@ -72,33 +78,11 @@ If you find PCL useful in your research, please consider citing:
     }
 
 ### Contents
-1. [Requirements: software](#requirements-software)
-2. [Requirements: hardware](#requirements-hardware)
-3. [Basic installation](#installation)
-4. [Installation for training and testing](#installation-for-training-and-testing)
-5. [Extra Downloads (Models trained on PASCAL VOC)](#download-models-trained-on-pascal-voc)
-6. [Usage](#usage)
-7. [TODO](#what-we-are-going-to-do)
-
-### Requirements: software
-
-Tested under python3.
-
-- python packages
-  - pytorch==0.4.1
-  - torchvision>=0.2.0
-  - cython
-  - matplotlib
-  - numpy
-  - scipy
-  - opencv
-  - pyyaml==3.12
-  - packaging
-  - [pycocotools](https://github.com/cocodataset/cocoapi)  — also available from pip.
-  - tensorboardX  — for logging the losses in Tensorboard
-  - sklearn
-- An NVIDAI GPU and CUDA 8.0 or higher. Some operations only have gpu implementation.
-- **NOTICE**: different versions of Pytorch package have different memory usages.
+1. [Requirements: hardware](#requirements-hardware)
+2. [Basic installation](#installation)
+3. [Installation for training and testing](#installation-for-training-and-testing)
+4. [Usage](#usage)
+5. [TODO](#what-we-are-going-to-do)
 
 ### Requirements: hardware
 
@@ -111,10 +95,9 @@ Tested under python3.
   git clone https://github.com/ppengtang/pcl.pytorch.git & cd pcl.pytorch
   ```
 
-2. Compile the CUDA code:
+2. Install libraries
   ```Shell
-  cd $PCL_ROOT/lib
-  sh make.sh
+  sh install.sh
   ```
 
 ### Installation for training and testing
@@ -146,7 +129,7 @@ Tested under python3.
   # ... and several other directories ...
   ```
 
-4. Create symlinks for the PASCAL VOC dataset
+5. Create symlinks for the PASCAL VOC dataset
 
   ```Shell
   cd $PCL_ROOT/data
@@ -154,15 +137,11 @@ Tested under python3.
   ```
   Using symlinks is a good idea because you will likely want to share the same PASCAL dataset installation between multiple projects.
 
-5. [Optional] follow similar steps to get PASCAL VOC 2012.
+6. [Optional] follow similar steps to get PASCAL VOC 2012.
 
-6. You should put the generated proposal data under the folder $PCL_ROOT/data/selective_search_data, with the name "voc_2007_trainval.pkl", "voc_2007_test.pkl". You can downlad the Selective Search proposals [here](https://drive.google.com/drive/folders/1dAH1oPZHKGWowOFVewblSQDJzKobTR5A?usp=sharing).
+7. You should put the generated proposal data under the folder $PCL_ROOT/data/selective_search_data, with the name "voc_2007_trainval.pkl", "voc_2007_test.pkl". You can downlad the Selective Search proposals [here](https://drive.google.com/drive/folders/1dAH1oPZHKGWowOFVewblSQDJzKobTR5A?usp=sharing).
 
-7. The pre-trained models are available at: [Dropbox](https://www.dropbox.com/s/s3brpk0bdq60nyb/vgg16_caffe.pth?dl=0), [VT Server](https://filebox.ece.vt.edu/~jw2yang/faster-rcnn/pretrained-base-models/vgg16_caffe.pth). You should put it under the folder $PCL_ROOT/data/pretrained_model.
-
-### Download models trained on PASCAL VOC
-
-Models trained on PASCAL VOC can be downloaded here: [Google Drive](https://drive.google.com/drive/folders/1OG56zqBv_gbLsDXySpLi55bYy5Q9Tf2-?usp=sharing), [Baidu Yun](https://pan.baidu.com/s/1k5SvtFAXmz0dJ9-QLeaq8Q) (Password: 3l06).
+8. The pre-trained models are available at: [Dropbox](https://www.dropbox.com/s/s3brpk0bdq60nyb/vgg16_caffe.pth?dl=0), [VT Server](https://filebox.ece.vt.edu/~jw2yang/faster-rcnn/pretrained-base-models/vgg16_caffe.pth). You should put it under the folder $PCL_ROOT/data/pretrained_model.
 
 ### Usage
 
@@ -172,7 +151,12 @@ Models trained on PASCAL VOC can be downloaded here: [Google Drive](https://driv
   CUDA_VISIBLE_DEVICES=0 python tools/train_net_step.py --dataset voc2007 \
     --cfg configs/baselines/vgg16_voc2007.yaml --bs 1 --nw 4 --iter_size 4
   ```
-**Note: The current implementation has a bug on multi-gpu training and thus does not support multi-gpu training.**
+  or
+  ```Shell
+  CUDA_VISIBLE_DEVICES=0 python tools/train_net_step.py --dataset voc2007 \
+    --cfg configs/baselines/vgg16_voc2007_more.yaml --bs 1 --nw 4 --iter_size 4
+  ```
+~~**Note: The current implementation has a bug on multi-gpu training and thus does not support multi-gpu training.**~~
 
 **Test** a PCL network. For example, test the VGG 16 network on VOC 2007:
 
@@ -192,7 +176,7 @@ Models trained on PASCAL VOC can be downloaded here: [Google Drive](https://driv
 
 Test output is written underneath `$PCL_ROOT/Outputs`.
 
-**Note: Add `--multi-gpu-testing` if multiple gpus are available.**
+~~**Note: Add `--multi-gpu-testing` if multiple gpus are available.**~~
 
 #### Evaluation
 For mAP, run the python code tools/reval.py
@@ -211,4 +195,10 @@ For CorLoc, run the python code tools/reval.py
 
 - [x] Add PASCAL VOC 2012 configurations.
 - [x] Upload trained models.
-- [ ] Support multi-gpu training.
+- [x] Support multi-gpu training.
+- [ ] Clean codes.
+- [ ] Fix bugs for multi-gpu testing.
+
+### Acknowledgements
+
+We thank [Mingfei Gao](https://fly6464.github.io/), Yufei Yun, and Ke Yang for the help of improving this repo.

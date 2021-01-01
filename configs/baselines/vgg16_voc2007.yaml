@@ -1,6 +1,7 @@
 MODEL:
   TYPE: generalized_rcnn
   CONV_BODY: vgg16.dilated_conv5_body
+  WITH_FRCNN: True
 NUM_GPUS: 2
 VGG:
   IMAGENET_PRETRAINED_WEIGHTS: 'data/pretrained_model/vgg16_caffe.pth'
@@ -10,8 +11,8 @@ SOLVER:
   BASE_LR: 0.001
   GAMMA: 0.1
   # 1x schedule (note TRAIN.IMS_PER_BATCH: 1)
-  MAX_ITER: 50000
-  STEPS: [0, 35000]
+  MAX_ITER: 70000
+  STEPS: [0, 50000]
 FAST_RCNN:
   ROI_BOX_HEAD: vgg16.roi_2mlp_head
   ROI_XFORM_METHOD: RoIPoolF
@@ -34,4 +35,5 @@ TEST:
     SCALES: (576, 688, 864, 1200)
     SCALE_H_FLIP: True
     SCORE_HEUR: 'AVG'
-    COORD_HEUR: 'ID'
+    COORD_HEUR: 'AVG'
+RNG_SEED: 4

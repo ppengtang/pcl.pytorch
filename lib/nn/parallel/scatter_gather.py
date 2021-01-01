@@ -5,7 +5,17 @@ import torch
 from torch.autograd import Variable
 from ._functions import Scatter, Gather
 from torch._six import string_classes, int_classes
-from torch.utils.data.dataloader import numpy_type_map
+
+numpy_type_map = {
+    'float64': torch.DoubleTensor,
+    'float32': torch.FloatTensor,
+    'float16': torch.HalfTensor,
+    'int64': torch.LongTensor,
+    'int32': torch.IntTensor,
+    'int16': torch.ShortTensor,
+    'int8': torch.CharTensor,
+    'uint8': torch.ByteTensor,
+}
 
 
 def scatter(inputs, target_gpus, dim=0):

@@ -77,10 +77,10 @@ class TrainingStats(object):
             total_loss += loss
             loss_data = loss.data[0]
             model_out['losses'][k] = loss
-            self.smoothed_losses[k].AddValue(loss_data)
+            self.smoothed_losses[k].AddValue(loss_data.item())
 
         model_out['total_loss'] = total_loss  # Add the total loss for back propagation
-        self.smoothed_total_loss.AddValue(total_loss.data[0])
+        self.smoothed_total_loss.AddValue(total_loss.data[0].item())
 
     def _UpdateIterStats_inner(self, model_out, inner_iter):
         """Update tracked iteration statistics for the case of iter_size > 1"""
@@ -104,14 +104,14 @@ class TrainingStats(object):
             self.inner_losses[k].append(loss_data)
             if inner_iter == (self.misc_args.iter_size - 1):
                 loss_data = self._mean_and_reset_inner_list('inner_losses', k)
-                self.smoothed_losses[k].AddValue(loss_data)
+                self.smoothed_losses[k].AddValue(loss_data.item())
 
         model_out['total_loss'] = total_loss  # Add the total loss for back propagation
         total_loss_data = total_loss.data[0]
         self.inner_total_loss.append(total_loss_data)
         if inner_iter == (self.misc_args.iter_size - 1):
             total_loss_data = self._mean_and_reset_inner_list('inner_total_loss')
-            self.smoothed_total_loss.AddValue(total_loss_data)
+            self.smoothed_total_loss.AddValue(total_loss_data.item())
 
     def _mean_and_reset_inner_list(self, attr_name, key=None):
         """Take the mean and reset list empty"""

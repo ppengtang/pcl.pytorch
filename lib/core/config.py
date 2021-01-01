@@ -96,7 +96,6 @@ __C.TRAIN.FG_THRESH = 0.5
 
 __C.TRAIN.BG_THRESH = 0.1
 
-
 # ---------------------------------------------------------------------------- #
 # Data loader options
 # ---------------------------------------------------------------------------- #
@@ -255,6 +254,19 @@ __C.MODEL.NUM_CLASSES = -1
 # See: __C.RESNETS.IMAGENET_PRETRAINED_WEIGHTS
 __C.MODEL.LOAD_IMAGENET_PRETRAINED_WEIGHTS = True
 
+# Default weights on (dx, dy, dw, dh) for normalizing bbox regression targets
+# These are empirically chosen to approximately lead to unit variance targets
+#
+# In older versions, the weights were set such that the regression deltas
+# would have unit standard deviation on the training dataset. Presently, rather
+# than computing these statistics exactly, we use a fixed set of weights
+# (10., 10., 5., 5.) by default. These are approximately the weights one would
+# get from COCO using the previous unit stdev heuristic.
+__C.MODEL.BBOX_REG_WEIGHTS = (10., 10., 5., 5.)
+
+# With Fast R-CNN branch
+__C.MODEL.WITH_FRCNN = True
+
 # ---------------------------------------------------------------------------- #
 # Solver options
 # Note: all solver options are used exactly as specified; the implication is
@@ -377,7 +389,7 @@ __C.FAST_RCNN.ROI_XFORM_RESOLUTION = 14
 
 
 # ---------------------------------------------------------------------------- #
-# ResNets options ("ResNets" = ResNet and ResNeXt)
+# VGG options
 # ---------------------------------------------------------------------------- #
 __C.VGG = AttrDict()
 
@@ -407,7 +419,7 @@ __C.NUM_GPUS = 1
 # some boxes that are distinct in image space to become identical in feature
 # coordinates. If DEDUP_BOXES > 0, then DEDUP_BOXES is used as the scale factor
 # for identifying duplicate boxes.
-# 1/16 is correct for {Alex,Caffe}Net, VGG_CNN_M_1024, and VGG16
+# 1/8 is correct for {Alex,Caffe}Net, VGG_CNN_M_1024, and VGG16
 __C.DEDUP_BOXES = 1. / 8.
 
 # Clip bounding box transformation predictions to prevent np.exp from
