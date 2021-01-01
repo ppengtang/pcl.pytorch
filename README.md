@@ -8,6 +8,8 @@ By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info
 
 **The final performance of this implementation is mAP 49.2% and CorLoc 65.0% on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
 
+**Please check the [master](https://github.com/ppengtang/pcl.pytorch) branch for higher PyTorch version support and better results.**
+
 Small trick to obtain better results on COCO: changing [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/lib/modeling/pcl_heads.py#L84) to `return 4.0 * loss.mean()`.
 
 ### Introduction
@@ -108,7 +110,7 @@ Tested under python3.
 
 1. Clone the PCL repository
   ```Shell
-  git clone https://github.com/ppengtang/pcl.pytorch.git & cd pcl.pytorch
+  git clone https://github.com/ppengtang/pcl.pytorch.git & cd pcl.pytorch & git checkout 0.4.0
   ```
 
 2. Compile the CUDA code:
