@@ -2,9 +2,9 @@
 
 By [Peng Tang](https://pengtang.xyz/), [Xinggang Wang](http://www.xinggangw.info/), [Song Bai](http://songbai.site/), [Wei Shen](http://songbai.site/), [Xiang Bai](http://122.205.5.5:8071/~xbai/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu), and [Alan Yuille](http://www.cs.jhu.edu/~ayuille/).
 
-**This is a PyTorch implementation of our PCL/OICR. The original Caffe implementation of PCL/OICR is available [here](https://github.com/ppengtang/oicr).**
+This is a PyTorch implementation of our PCL/OICR. The original Caffe implementation of PCL/OICR is available [here](https://github.com/ppengtang/oicr).
 
-**The final performance of this implementation is ~~mAP 49.2% and CorLoc 65.0%~~ *mAP 52.9% and CorLoc 67.2%* using [vgg16_voc2007.yaml](configs/baselines/vgg16_voc2007.yaml) and *mAP 54.1% and CorLoc 69.5%* using [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml) on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.**
+The final performance of this implementation is ~~mAP 49.2% and CorLoc 65.0%~~ ***mAP 52.9% and CorLoc 67.2%*** using [vgg16_voc2007.yaml](configs/baselines/vgg16_voc2007.yaml) and ***mAP 54.1% and CorLoc 69.5%*** using [vgg16_voc2007_more.yaml](configs/baselines/vgg16_voc2007_more.yaml) on PASCAL VOC 2007 using a single VGG16 model. The results are comparable with the recent state of the arts.
 
 Please check the [0.4.0](https://github.com/ppengtang/pcl.pytorch/tree/0.4.0) branch for the older version of codes.
 
