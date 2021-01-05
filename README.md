@@ -203,4 +203,4 @@ For CorLoc, run the python code tools/reval.py
 
 ### Acknowledgements
 
-We thank [Mingfei Gao](https://fly6464.github.io/), Yufei Yun, and Ke Yang for the help of improving this repo.
+We thank [Mingfei Gao](https://fly6464.github.io/), Yufei Yin, and Ke Yang for the help of improving this repo.
