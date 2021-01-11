@@ -164,14 +164,14 @@ If you find PCL useful in your research, please consider citing:
 
 #### On trainval
   ```Shell
-  python tools/test_net.py --cfg configs/baselines/vgg16_voc2007.yaml \
+  CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --cfg configs/baselines/vgg16_voc2007.yaml \
     --load_ckpt Outputs/vgg16_voc2007/$MODEL_PATH \
     --dataset voc2007trainval
   ```
 
 #### On test
   ```Shell
-  python tools/test_net.py --cfg configs/baselines/vgg16_voc2007.yaml \
+  CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --cfg configs/baselines/vgg16_voc2007.yaml \
     --load_ckpt Outputs/vgg16_voc2007/$model_path \
     --dataset voc2007test
   ```
