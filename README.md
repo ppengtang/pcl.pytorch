@@ -178,7 +178,7 @@ If you find PCL useful in your research, please consider citing:
 
 Test output is written underneath `$PCL_ROOT/Outputs`.
 
-**If your testing speed is very slow (> 1 day), try to add `torch.backends.cudnn.enabled = False` after [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/tools/test_net.py#L119). See [issue #45](https://github.com/ppengtang/pcl.pytorch/issues/45#issuecomment-759160617) for more details.
+**If your testing speed is very slow (> 1 day), try to add `torch.backends.cudnn.enabled = False` after [this line of codes](https://github.com/ppengtang/pcl.pytorch/blob/master/tools/test_net.py#L119). See [issue #45](https://github.com/ppengtang/pcl.pytorch/issues/45#issuecomment-759160617) for more details.**
 
 ~~**Note: Add `--multi-gpu-testing` if multiple gpus are available.**~~
 
