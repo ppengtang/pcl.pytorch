@@ -83,8 +83,9 @@ If you find PCL useful in your research, please consider citing:
 1. [Requirements: hardware](#requirements-hardware)
 2. [Basic installation](#installation)
 3. [Installation for training and testing](#installation-for-training-and-testing)
-4. [Usage](#usage)
-5. [TODO](#what-we-are-going-to-do)
+4. [Extra Downloads (Models trained on PASCAL VOC)](#download-models-trained-on-pascal-voc)
+5. [Usage](#usage)
+6. [TODO](#what-we-are-going-to-do)
 
 ### Requirements: hardware
 
