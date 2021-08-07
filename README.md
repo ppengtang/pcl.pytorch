@@ -145,6 +145,10 @@ If you find PCL useful in your research, please consider citing:
 
 8. The pre-trained models are available at: [Dropbox](https://www.dropbox.com/s/s3brpk0bdq60nyb/vgg16_caffe.pth?dl=0), [VT Server](https://filebox.ece.vt.edu/~jw2yang/faster-rcnn/pretrained-base-models/vgg16_caffe.pth). You should put it under the folder $PCL_ROOT/data/pretrained_model.
 
+### Download models trained on PASCAL VOC
+
+Models trained on PASCAL VOC 2007 can be downloaded here: [Google Drive](https://drive.google.com/drive/folders/1OG56zqBv_gbLsDXySpLi55bYy5Q9Tf2-?usp=sharing).
+
 ### Usage
 
 **Train** a PCL network. For example, train a VGG16 network on VOC 2007 trainval
